@@ -4,6 +4,8 @@ from rest_framework.parsers import JSONParser
 from behaviours.models import Behaviour
 from behaviours.serializers import BehaviourSerializer
 
+import random
+
 @csrf_exempt
 def behaviour_list(request):
     """
@@ -47,3 +49,17 @@ def behaviour_detail(request, pk):
     elif request.method == 'DELETE':
         behaviour.delete()
         return HttpResponse(status=204)
+
+@csrf_exempt
+def sequence_detail(request, length, seed=None):
+    """
+    Retrieve, update or delete a behaviour
+    """
+    # TODO Add exception handler when for length being larger than total tricks.
+    if request.method == 'GET':
+        if seed is not None:
+            random.seed(seed)
+        behaviours = random.sample(list(Behaviour.objects.all()), length)
+
+        serializer = BehaviourSerializer(behaviours, many=True)
+        return JsonResponse(serializer.data, safe=False)
