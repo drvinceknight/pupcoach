@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.urlpatterns import format_suffix_patterns
 from behaviours import views
 
 urlpatterns = [
@@ -7,3 +8,5 @@ urlpatterns = [
     path('behaviours/sequence/<int:length>/', views.sequence_detail),
     path('behaviours/sequence/<int:length>/<int:seed>/', views.sequence_detail),
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)

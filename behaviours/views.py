@@ -1,57 +1,55 @@
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from behaviours.models import Behaviour
 from behaviours.serializers import BehaviourSerializer
 
 import random
 
-@csrf_exempt
-def behaviour_list(request):
+@api_view(['GET', 'POST'])
+def behaviour_list(request, format=None):
     """
     List all behaviours, or create a new behaviour
     """
     if request.method == 'GET':
         behaviours = Behaviour.objects.all()
         serializer = BehaviourSerializer(behaviours, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        return Response(serializer.data)
 
     elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = BehaviourSerializer(data=data)
+        serializer = BehaviourSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.data, status=400)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt
-def behaviour_detail(request, pk):
+@api_view(['GET', 'POST', 'DELETE'])
+def behaviour_detail(request, pk, format=None):
     """
     Retrieve, update or delete a behaviour
     """
     try:
         behaviour = Behaviour.objects.get(pk=pk)
     except Behaviour.DoesNotExist:
-        return HttpResponse(status=404)
+        return Response(status=status_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = BehaviourSerializer(behaviour)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data)
 
     elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = BehaviourSerializer(behaviour, data=data)
+        serializer = BehaviourSerializer(behaviour, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         behaviour.delete()
-        return HttpResponse(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-@csrf_exempt
-def sequence_detail(request, length, seed=None):
+@api_view(['GET', 'POST'])
+def sequence_detail(request, length, seed=None, format=None):
     """
     Retrieve, update or delete a behaviour
     """
@@ -62,4 +60,4 @@ def sequence_detail(request, length, seed=None):
         behaviours = random.sample(list(Behaviour.objects.all()), length)
 
         serializer = BehaviourSerializer(behaviours, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        return Response(serializer.data)
